@@ -3,52 +3,60 @@ import time
 from rpi_lcd import LCD
 
 lcd = LCD()
-GPIO.setmode(GPIO.BOARD)  # GPIO Mode which is set to board
+GPIO.setmode(GPIO.BOARD) ////GPIO Mode which is set to board
+ 
 
-GPIO_TRIGGER = 8  # Setting GPIO Pins
+GPIO_TRIGGER = 8 //setting GPIO Pins
 GPIO_ECHO = 10
 
-SET_DISTANCE = 25  # Setting maximum distance
 
-# Initializing LCD
+SET_DISTANCE = 25 //Setting maximum distance 
 
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT)  # Set GPIO direction (IN / OUT)
+//initialising LCD 
+
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT) //set GPIO direction (IN / OUT)
 GPIO.setup(GPIO_ECHO, GPIO.IN)
 
+
+
+
 def distance():
-    GPIO.output(GPIO_TRIGGER, True)  # Set Trigger pin to HIGH to trigger the signal
-
-    time.sleep(0.00001)  # Set Trigger to LOW after 0.01ms to avoid re-triggering
+    GPIO.output(GPIO_TRIGGER, True) //  set Trigger pin to HIGH when it will triggers a signal
+ 
+   
+    time.sleep(0.00001)  //  set Trigger after 0.01ms to LOW that it will not trigger the signal again
     GPIO.output(GPIO_TRIGGER, False)
-
-    StartTime = time.time()  # Initializing two variables for time difference
+ 
+    StartTime = time.time() //initialising two variables for time diffrence
     StopTime = time.time()
-
-    while GPIO.input(GPIO_ECHO) == 0:  # Store StartTime
+ 
+    
+    while GPIO.input(GPIO_ECHO) == 0: //store StartTime
         StartTime = time.time()
-
-    while GPIO.input(GPIO_ECHO) == 1:  # Store time of arrival
+ 
+    
+    while GPIO.input(GPIO_ECHO) == 1: // store time of arrival
         StopTime = time.time()
+ 
+    TimeElapsed = StopTime - StartTime ////time difference between start and arrival
 
-    TimeElapsed = StopTime - StartTime  # Time difference between start and arrival
+   // multiply with the sonic speed (34300 cm/s)
+    //and divide by 2, because there and back
 
-    # Multiply with the speed of sound (34300 cm/s) and divide by 2, as it's a round trip
     distance = (TimeElapsed * 34300) / 2
-    x = int(distance)
+    x= int(distance)
     return x
 
 try:
-    while True:
-        dist = distance()
-        msg = str(dist) + " cm"
-
-        print("Measured Distance = %.1f cm" % dist)
-        lcd.text("Distance:", 1)
-        lcd.text(msg, 2)
-        time.sleep(0.01)
-
+	while True:
+		dist = distance()
+		msg = str(dist) +" cm"
+		
+		print("Measured D)istance = %.1f cm" % dist)
+		lcd.text("distance:",1)
+		lcd.text(msg,2)
+		time.sleep(0.01)
 except KeyboardInterrupt:
     print("\nProgram is stopped")
-
-finally:
-    GPIO.cleanup()  # Cleanup the GPIO pins when the program ends
+    
+GPIO.cleanup()
