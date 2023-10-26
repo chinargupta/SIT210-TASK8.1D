@@ -1,62 +1,44 @@
-import RPi.GPIO as GPIO
+import smbus2 as smbus
 import time
-from rpi_lcd import LCD
 
-lcd = LCD()
-GPIO.setmode(GPIO.BOARD) ////GPIO Mode which is set to board
- 
+SENSOR_ADDR = 0x23
+i2c_bus = smbus.SMBus(1)
+SENSOR_MODE = 0x10
 
-GPIO_TRIGGER = 8 //setting GPIO Pins
-GPIO_ECHO = 10
-
-
-SET_DISTANCE = 25 //Setting maximum distance 
-
-//initialising LCD 
-
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT) //set GPIO direction (IN / OUT)
-GPIO.setup(GPIO_ECHO, GPIO.IN)
-
-
-
-
-def distance():
-    GPIO.output(GPIO_TRIGGER, True) //  set Trigger pin to HIGH when it will triggers a signal
- 
-   
-    time.sleep(0.00001)  //  set Trigger after 0.01ms to LOW that it will not trigger the signal again
-    GPIO.output(GPIO_TRIGGER, False)
- 
-    StartTime = time.time() //initialising two variables for time diffrence
-    StopTime = time.time()
- 
-    
-    while GPIO.input(GPIO_ECHO) == 0: //store StartTime
-        StartTime = time.time()
- 
-    
-    while GPIO.input(GPIO_ECHO) == 1: // store time of arrival
-        StopTime = time.time()
- 
-    TimeElapsed = StopTime - StartTime ////time difference between start and arrival
-
-   // multiply with the sonic speed (34300 cm/s)
-    //and divide by 2, because there and back
-
-    distance = (TimeElapsed * 34300) / 2
-    x= int(distance)
-    return x
+// Setting the mode of the sensor
+i2c_bus.write_byte(SENSOR_ADDR, SENSOR_MODE)
 
 try:
-	while True:
-		dist = distance()
-		msg = str(dist) +" cm"
-		
-		print("Measured D)istance = %.1f cm" % dist)
-		lcd.text("distance:",1)
-		lcd.text(msg,2)
-		time.sleep(0.01)
+    while True:
+        time.sleep(1.5)
+
+        //You can remove the code that reads light intensity data
+
+        // Define thresholds for different light categories
+        too_bright_threshold = 10000
+        bright_threshold = 5000
+        medium_threshold = 1000
+        dark_threshold = 100
+
+        // Simulate a light intensity value (for demonstration purposes)
+        light_intensity = 7500  # You can replace this with your actual value
+
+        //Categorize the light level
+        if light_intensity > too_bright_threshold:
+            light_category = "Very Bright"
+        elif light_intensity > bright_threshold:
+            light_category = "Bright"
+        elif light_intensity > medium_threshold:
+            light_category = "Moderate"
+        elif light_intensity > dark_threshold:
+            light_category = "Dim"
+        else:
+            light_category = "Very Dim"
+
+         Print the light category
+        print(f"Light Category: {light_category}")
+
 except KeyboardInterrupt:
-    print("\nProgram is stopped")
-    
-GPIO.cleanup()
+    pass
+
+i2c_bus.close()
