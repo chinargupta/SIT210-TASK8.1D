@@ -1,77 +1,54 @@
-// we Import impotatnt  necessary libraries
 import RPi.GPIO as GPIO
 import time
 from rpi_lcd import LCD
 
-//now  Initialize the LCD
 lcd = LCD()
+GPIO.setmode(GPIO.BOARD)  # GPIO Mode which is set to board
 
-// Set GPIO mode to BOARD (physical pin numbers)
-GPIO.setmode(GPIO.BOARD)
+GPIO_TRIGGER = 8  # Setting GPIO Pins
+GPIO_ECHO = 10
 
-// GPIO pins for the ultrasonic sensor
-GPIO_TRIGGER = 8  # Trigger pin
-GPIO_ECHO = 10    # Echo pin
+SET_DISTANCE = 25  # Setting maximum distance
 
-// Set the maximum distance
-SET_DISTANCE = 25  # cm
+# Initializing LCD
 
-// Initialize the GPIO pins for the ultrasonic sensor
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT)  // Set Trigger pin as an output
-GPIO.setup(GPIO_ECHO, GPIO.IN)      // Set Echo pin as an input
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)  # Set GPIO direction (IN / OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
 
-// Function to measure distance using the ultrasonic sensor
 def distance():
-    // Send a trigger signal
-    GPIO.output(GPIO_TRIGGER, True)
-    
-    // Wait for a very short time
-    time.sleep(0.00001)
-    
-    // Turn off the trigger signal
+    GPIO.output(GPIO_TRIGGER, True)  # Set Trigger pin to HIGH to trigger the signal
+
+    time.sleep(0.00001)  # Set Trigger to LOW after 0.01ms to avoid re-triggering
     GPIO.output(GPIO_TRIGGER, False)
 
-    // Initialize variables for measuring time
-    StartTime = time.time()  # Start time
-    StopTime = time.time()   # Stop time
-    
-    // Measure the time it takes for the echo signal to return
-    while GPIO.input(GPIO_ECHO) == 0:  # Store the start time
+    StartTime = time.time()  # Initializing two variables for time difference
+    StopTime = time.time()
+
+    while GPIO.input(GPIO_ECHO) == 0:  # Store StartTime
         StartTime = time.time()
-    
-    while GPIO.input(GPIO_ECHO) == 1:  # Store the stop time
+
+    while GPIO.input(GPIO_ECHO) == 1:  # Store time of arrival
         StopTime = time.time()
-    
-    // Calculate the time elapsed (time difference between start and arrival)
-    TimeElapsed = StopTime - StartTime
-    
-    // Calculate the distance using the speed of sound (34300 cm/s) and divide by 2
+
+    TimeElapsed = StopTime - StartTime  # Time difference between start and arrival
+
+    # Multiply with the speed of sound (34300 cm/s) and divide by 2, as it's a round trip
     distance = (TimeElapsed * 34300) / 2
-    
-    //now we Convert the distance to an integer
     x = int(distance)
-    
     return x
 
 try:
     while True:
-        // Get the distance measurement
         dist = distance()
-        
-        // Prepare the message
         msg = str(dist) + " cm"
-        
-      // Print the measured distance
+
         print("Measured Distance = %.1f cm" % dist)
-        
-      // Display the distance on the LCD
-        lcd.text("distance:", 1)
+        lcd.text("Distance:", 1)
         lcd.text(msg, 2)
-        
-        // Wait for a short time before the next measurement
         time.sleep(0.01)
+
 except KeyboardInterrupt:
     print("\nProgram is stopped")
 
-// Cleanup GPIO pins when the program is finished
-GPIO.cleanup()
+finally:
+    GPIO.cleanup()  # Cleanup the GPIO pins when the program ends
